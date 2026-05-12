@@ -10,19 +10,28 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(${LLAMA_DIR} llama_build)
 
-# Build llava (vision) library
-add_library(llava STATIC
-    ${LLAMA_DIR}/examples/llava/llava.cpp
-    ${LLAMA_DIR}/examples/llava/clip.cpp
+# Glob all llava cpp sources — handles any llama.cpp version
+file(GLOB LLAVA_SRCS
+    "${LLAMA_DIR}/examples/llava/*.cpp"
+    "${LLAMA_DIR}/tools/llava/*.cpp"
 )
-target_include_directories(llava PRIVATE
-    ${LLAMA_DIR}
-    ${LLAMA_DIR}/include
-    ${LLAMA_DIR}/ggml/include
-    ${LLAMA_DIR}/common
-    ${LLAMA_DIR}/examples/llava
-)
-target_link_libraries(llava llama)
+
+if(LLAVA_SRCS)
+    add_library(llava STATIC ${LLAVA_SRCS})
+    target_include_directories(llava PRIVATE
+        ${LLAMA_DIR}
+        ${LLAMA_DIR}/include
+        ${LLAMA_DIR}/ggml/include
+        ${LLAMA_DIR}/common
+        ${LLAMA_DIR}/examples/llava
+        ${LLAMA_DIR}/tools/llava
+    )
+    target_link_libraries(llava llama)
+    set(LLAVA_LINK llava)
+else()
+    message(WARNING "llava sources not found — vision features disabled")
+    set(LLAVA_LINK "")
+endif()
 
 add_library(
     moondream_jni
@@ -36,10 +45,11 @@ target_include_directories(moondream_jni PRIVATE
     ${LLAMA_DIR}/ggml/include
     ${LLAMA_DIR}/common
     ${LLAMA_DIR}/examples/llava
+    ${LLAMA_DIR}/tools/llava
 )
 
 target_link_libraries(moondream_jni
-    llava
+    ${LLAVA_LINK}
     llama
     log
     android
