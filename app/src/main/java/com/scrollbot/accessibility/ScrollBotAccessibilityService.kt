@@ -47,7 +47,8 @@ class ScrollBotAccessibilityService : AccessibilityService() {
                 searchNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
                 delay(300)
                 // simulate enter/search
-                searchNode.performAction(AccessibilityNodeInfo.ACTION_IME_ENTER)
+                performGlobalAction(GLOBAL_ACTION_BACK) // dismiss keyboard
+                searchNode.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 delay(1000)
                 onDone()
             }
