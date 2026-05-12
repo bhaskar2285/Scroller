@@ -104,7 +104,7 @@ fun OnboardingScreen(
                 OutlinedButton(onClick = onDownloadModel) { Text("I've enabled it → Next") }
             }
             3 -> {
-                Text("Step 3/3: Downloading AI model (~1.1GB)")
+                Text("Step 3/3: Downloading AI model (~3.5GB)")
                 Spacer(Modifier.height(16.dp))
                 LinearProgressIndicator(progress = { downloadProgress }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))

@@ -11,7 +11,7 @@ import java.io.FileOutputStream
 class ModelDownloadManager(private val context: Context) {
 
     companion object {
-        // moondream2 INT4 Q4_K_M quantization from HuggingFace
+        // moondream2 f16 from HuggingFace (~3.5 GB total for both files)
         const val MODEL_URL = "https://huggingface.co/vikhyatk/moondream2/resolve/main/moondream2-text-model-f16.gguf"
         const val MMPROJ_URL = "https://huggingface.co/vikhyatk/moondream2/resolve/main/moondream2-mmproj-f16.gguf"
         const val MODEL_FILE = "moondream2.gguf"

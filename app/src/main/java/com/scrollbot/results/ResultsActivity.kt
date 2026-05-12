@@ -1,10 +1,14 @@
 package com.scrollbot.results
 
+import android.app.Activity
 import android.content.Intent
+import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import com.scrollbot.ScanOrchestrator
 import com.scrollbot.capture.ScreenCaptureManager
 import com.scrollbot.data.AppTarget
@@ -31,22 +34,37 @@ class ResultsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val query = intent.getStringExtra("query") ?: ""
         val target = AppTarget.valueOf(intent.getStringExtra("target") ?: "LAZADA")
+        val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
         setContent {
             var results by remember { mutableStateOf<List<RankedItem>>(emptyList()) }
-            var progressMessage by remember { mutableStateOf("Starting scan...") }
+            var progressMessage by remember { mutableStateOf("Requesting screen capture...") }
             var done by remember { mutableStateOf(false) }
+            val scope = rememberCoroutineScope()
 
-            LaunchedEffect(Unit) {
-                lifecycleScope.launch {
-                    val orchestrator = ScanOrchestrator(this@ResultsActivity, captureManager)
-                    val items = orchestrator.scan(query, target) { progress ->
-                        progressMessage = progress.message
-                        if (progress.stage == ScanOrchestrator.Stage.DONE) done = true
+            val projectionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                    captureManager.init(result.resultCode, result.data!!)
+                    progressMessage = "Starting scan..."
+                    scope.launch {
+                        val orchestrator = ScanOrchestrator(this@ResultsActivity, captureManager)
+                        val items = orchestrator.scan(query, target) { progress ->
+                            progressMessage = progress.message
+                            if (progress.stage == ScanOrchestrator.Stage.DONE) done = true
+                        }
+                        results = items
+                        done = true
                     }
-                    results = items
+                } else {
+                    progressMessage = "Screen capture permission denied"
                     done = true
                 }
+            }
+
+            LaunchedEffect(Unit) {
+                projectionLauncher.launch(projectionManager.createScreenCaptureIntent())
             }
 
             ResultsScreen(
@@ -59,6 +77,11 @@ class ResultsActivity : ComponentActivity() {
                 onBack = { finish() }
             )
         }
+    }
+
+    override fun onDestroy() {
+        captureManager.release()
+        super.onDestroy()
     }
 
     private fun openDeepLink(item: RankedItem) {
