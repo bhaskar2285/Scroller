@@ -3,8 +3,8 @@
 #include <vector>
 #include <android/log.h>
 #include "llama.h"
-#include "clip.h"
-#include "llava.h"
+#include "examples/llava/clip.h"
+#include "examples/llava/llava.h"
 
 #define LOG_TAG "MoondreamJNI"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)

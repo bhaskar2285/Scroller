@@ -10,6 +10,20 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(${LLAMA_DIR} llama_build)
 
+# Build llava (vision) library
+add_library(llava STATIC
+    ${LLAMA_DIR}/examples/llava/llava.cpp
+    ${LLAMA_DIR}/examples/llava/clip.cpp
+)
+target_include_directories(llava PRIVATE
+    ${LLAMA_DIR}
+    ${LLAMA_DIR}/include
+    ${LLAMA_DIR}/ggml/include
+    ${LLAMA_DIR}/common
+    ${LLAMA_DIR}/examples/llava
+)
+target_link_libraries(llava llama)
+
 add_library(
     moondream_jni
     SHARED
@@ -18,13 +32,15 @@ add_library(
 
 target_include_directories(moondream_jni PRIVATE
     ${LLAMA_DIR}
+    ${LLAMA_DIR}/include
+    ${LLAMA_DIR}/ggml/include
     ${LLAMA_DIR}/common
     ${LLAMA_DIR}/examples/llava
 )
 
 target_link_libraries(moondream_jni
+    llava
     llama
-    common
     log
     android
 )
