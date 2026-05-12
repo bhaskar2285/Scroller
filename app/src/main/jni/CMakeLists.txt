@@ -28,9 +28,11 @@ if(LLAVA_SRCS)
     )
     target_link_libraries(llava llama)
     set(LLAVA_LINK llava)
+    set(HAVE_LLAVA 1)
 else()
     message(WARNING "llava sources not found — vision features disabled")
     set(LLAVA_LINK "")
+    set(HAVE_LLAVA 0)
 endif()
 
 add_library(
@@ -47,6 +49,8 @@ target_include_directories(moondream_jni PRIVATE
     ${LLAMA_DIR}/examples/llava
     ${LLAMA_DIR}/tools/llava
 )
+
+target_compile_definitions(moondream_jni PRIVATE HAVE_LLAVA=${HAVE_LLAVA})
 
 target_link_libraries(moondream_jni
     ${LLAVA_LINK}
